@@ -1,0 +1,161 @@
+{%extends 'core/base.html'%}
+{%load humanize%}
+{%block content%}
+    <div class="container" id="feedapp">
+        <div class="column">
+            <div class="column is-12">
+                <div class="wrapper-form">
+                    <form v-on:submit.prevent="submitYarn()">
+                        <div class="field">
+                            <div class="control">
+                                <textarea class="textarea" v-model="body" placeholder="what are you yarning today?"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <div class="control">
+                                <button class="button is-success">Submit</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="wrapper-yarns">
+                    <div class="yarn" v-for="yarn in yarns">
+                        <article class="media">
+                            <figure class="media-left">
+                                <p class="image is-64x64">
+                                    
+                                    <img :src="yarn.avatar">
+                                </p>
+                            </figure>
+
+                            <div class="media-content">
+                                <div class="content">
+                                    <p>
+                                        <strong>[[yarn.yarner]]</strong>
+                                        <small>[[yarn.created_at]]</small>
+                                        <br>
+                                        [[yarn.body]]
+                                    </p>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+
+                    {%for yarn in yarns%}
+                        <div class="yarn">
+                            <article class="media">
+                                <figure class="media-left">
+                                    <p class="image is-64x64">
+                                        {% if yarn.created_by.yarnerprofile.avatar %}
+                                            <img src="{{ yarn.created_by.yarnerprofile.avatar.url }}">
+                                        {% endif %}
+
+                                    </p>
+                                </figure>
+
+                                <div class="media-content">
+                                    <div class="content">
+                                        <p>
+                                            <strong>{{ yarn.created_by.username }}</strong>
+                                            <small>{{ yarn.created_at|naturaltime }}</small>
+                                            <br>
+                                            {{ yarn.body }}
+                                            <br>
+                                            <a @click="likeYarn({{ yarn.id }})" v-if="!liked_yarns.includes({{ yarn.id }})">Like</a>
+                                            <span v-if="liked_yarns.includes({{ yarn.id }})">Liked</span>
+                                            <small id="likes-{{ yarn.id }}">{{ yarn.likes.count }} likes</small>
+                                        </p>
+                                    </div>
+                                </div>
+                            </article>
+                        </div>
+                    {%endfor%}
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+{%endblock%}
+
+{%block script%}
+<script>
+    new Vue({
+        el: '#feedapp',
+        delimiters: ['[[', ']]'],
+        data(){
+            return{
+                yarns: [],
+                body: '',
+                yarner: '{{ request.user.username }}',
+                created_at: 'Now',
+                avatar: '{% if request.user.yarnerprofile.avatar %}{{ request.user.yarnerprofile.avatar.url}}{% endif %}',
+                liked_yarns: [{% for yarn in yarns%}{% if yarn.liked %}{{ yarn.id }}, {% endif %}{% endfor %}]
+            }
+        },
+        methods: {
+            likeYarn(yarn_id){
+                this.liked_yarns.push(parseInt(yarn_id));
+
+                var yarn ={
+                    'yarn_id': yarn_id
+                };
+                fetch('/api/add_like/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify(yarn)
+                })
+                .then((response)=> {
+                    console.log(response)
+                })
+                .catch((error)=>{
+                    console.log(erroor);
+                });
+
+                const el = document.getElementById('likes-'+ yarn_id)
+                const likes = parseInt(el.innerHTML.split(' ')[0]+1);
+                el.innerHTML = likes + ' likes';
+            },
+            submitYarn() {
+                console.log('submitYarn');
+
+                if (this.body.length > 0){
+                    var yarn = {
+                        'body': this.body,
+                        'yarner': this.yarner,
+                        'created_at': this.created_at,
+                        'avatar': this.avatar
+                    };
+
+                    this.yarns.unshift(yarn);
+
+                    fetch('/api/add_yarn', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}'
+
+                        },
+                        credentials: 'same-origin',
+                        body: JSON.stringify(oink)
+                    })
+                    .then((response)=> {
+                        console.log(response)
+                    })
+                    .catch((error)=>{
+                        console.log(erroor);
+                    })
+
+                }
+                this.body= '';
+            }
+        }
+    })
+</script>
+{%endblock%}

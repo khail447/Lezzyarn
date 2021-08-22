@@ -1,0 +1,28 @@
+-create project
+-create folders for structures
+-create app for coreviews
+-create app for yarns
+-create app for userprofiles: user(one to one field), follows(many to many field)
+
+
+-create base html file
+-create front page
+-create login and signup page
+
+-create page for my feeds
+-make it possible to sign out
+-make it possible towrite a yarn(vue.js-submit and append)
+-make it possible to search for yarners and yarns
+-make it possible to follow a yarner (vue.js--sendusing ajax)
+-make it possible to see my followers/who i follow
+-make it possible to see who other yarners follows/ar following
+
+-make it possible to like a yarn
+
+-add a dm feature
+-make it possible to see a convo
+-make it possible to send a dm(vue.js- submit and append)
+
+
+
+-deploy to server
